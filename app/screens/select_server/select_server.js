@@ -77,8 +77,7 @@ export default class SelectServer extends PureComponent {
         this.state = {
             connected: false,
             connecting: false,
-            error: null,
-            url: props.serverUrl,
+            error: null
         };
 
         this.cancelPing = null;
@@ -272,13 +271,6 @@ export default class SelectServer extends PureComponent {
         this.goToNextScreen(screen, title, passProps, options);
     };
 
-    handleTextChanged = (url) => {
-        this.setState({url});
-    };
-
-    inputRef = (ref) => {
-        this.textInput = ref;
-    };
 
     loginWithCertificate = async () => {
         tracker.initialLoad = Date.now();
@@ -389,7 +381,6 @@ export default class SelectServer extends PureComponent {
         } = this.state;
 
         let loader;
-        let buttonText;
         if (connected || connecting) {
             loader = (
                 <ActivityIndicator
@@ -398,21 +389,7 @@ export default class SelectServer extends PureComponent {
                     style={style.connectingIndicator}
                 />
             );
-            buttonText = (
-                <FormattedText
-                    id='mobile.components.select_server_view.connecting'
-                    defaultMessage='Connecting...'
-                />
-            );
-        } else {
-            buttonText = (
-                <FormattedText
-                    id='mobile.components.select_server_view.start'
-                    defaultMessage='Start'
-                />
-            );
-        }
-
+        } 
         let statusStyle = 'dark-content';
         if (Platform.OS === 'android') {
             statusStyle = 'light-content';
@@ -447,7 +424,10 @@ export default class SelectServer extends PureComponent {
                                     containerStyle={[GlobalStyles.signupButton, style.connectButton]}
                                 >
                                     <Text style={GlobalStyles.signupButtonText}>
-                                        {buttonText}
+                                        <FormattedText
+                                            id='mobile.components.select_server_view.start'
+                                            defaultMessage='Start'
+                                        />
                                     </Text>
                                 </Button>
                                 <ErrorText error={error}/>
