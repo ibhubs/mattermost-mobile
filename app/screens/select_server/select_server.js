@@ -77,8 +77,7 @@ export default class SelectServer extends PureComponent {
         this.state = {
             connected: false,
             connecting: false,
-            error: null,
-            url: props.serverUrl,
+            error: null
         };
 
         this.cancelPing = null;
@@ -102,6 +101,7 @@ export default class SelectServer extends PureComponent {
 
         telemetry.end(['start:select_server_screen']);
         telemetry.save();
+        this.handleConnect();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -145,10 +145,10 @@ export default class SelectServer extends PureComponent {
 
     getUrl = () => {
         const urlParse = require('url-parse');
-        let preUrl = urlParse(this.state.url, true);
+        let preUrl = urlParse('https://mattermost.ib-developers.net', true);
 
         if (!preUrl.host || preUrl.protocol === 'file:') {
-            preUrl = urlParse('https://' + stripTrailingSlashes(this.state.url), true);
+            preUrl = urlParse('https://' + stripTrailingSlashes('https://mattermost.ib-developers.net'), true);
         }
 
         if (preUrl.protocol === 'http:') {
@@ -271,13 +271,6 @@ export default class SelectServer extends PureComponent {
         this.goToNextScreen(screen, title, passProps, options);
     };
 
-    handleTextChanged = (url) => {
-        this.setState({url});
-    };
-
-    inputRef = (ref) => {
-        this.textInput = ref;
-    };
 
     loginWithCertificate = async () => {
         tracker.initialLoad = Date.now();
@@ -368,6 +361,15 @@ export default class SelectServer extends PureComponent {
         });
     };
 
+    showStartButton=()=>{
+        const {
+            connected,
+            connecting
+        } = this.state;
+        if (connected || connecting) return false;
+        return true;
+    }
+
     render() {
         const {formatMessage} = this.context.intl;
         const {allowOtherServers} = this.props;
@@ -378,31 +380,16 @@ export default class SelectServer extends PureComponent {
             url,
         } = this.state;
 
-        let buttonIcon;
-        let buttonText;
+        let loader;
         if (connected || connecting) {
-            buttonIcon = (
+            loader = (
                 <ActivityIndicator
                     animating={true}
                     size='small'
                     style={style.connectingIndicator}
                 />
             );
-            buttonText = (
-                <FormattedText
-                    id='mobile.components.select_server_view.connecting'
-                    defaultMessage='Connecting...'
-                />
-            );
-        } else {
-            buttonText = (
-                <FormattedText
-                    id='mobile.components.select_server_view.connect'
-                    defaultMessage='Connect'
-                />
-            );
-        }
-
+        } 
         let statusStyle = 'dark-content';
         if (Platform.OS === 'android') {
             statusStyle = 'light-content';
@@ -430,46 +417,21 @@ export default class SelectServer extends PureComponent {
                         accessible={false}
                     >
                         <View style={[GlobalStyles.container, GlobalStyles.signupContainer]}>
-                            <Image
-                                source={require('assets/images/logo.png')}
-                            />
-
-                            <View>
-                                <FormattedText
-                                    style={[GlobalStyles.header, GlobalStyles.label]}
-                                    id='mobile.components.select_server_view.enterServerUrl'
-                                    defaultMessage='Enter Server URL'
-                                />
-                            </View>
-                            <TextInput
-                                ref={this.inputRef}
-                                value={url}
-                                editable={!inputDisabled}
-                                onChangeText={this.handleTextChanged}
-                                onSubmitEditing={this.handleConnect}
-                                style={inputStyle}
-                                autoCapitalize='none'
-                                autoCorrect={false}
-                                keyboardType='url'
-                                placeholder={formatMessage({
-                                    id: 'mobile.components.select_server_view.siteUrlPlaceholder',
-                                    defaultMessage: 'https://mattermost.example.com',
-                                })}
-                                placeholderTextColor={changeOpacity('#000', 0.5)}
-                                returnKeyType='go'
-                                underlineColorAndroid='transparent'
-                                disableFullscreenUI={true}
-                            />
-                            <Button
-                                onPress={this.handleConnect}
-                                containerStyle={[GlobalStyles.signupButton, style.connectButton]}
-                            >
-                                {buttonIcon}
-                                <Text style={GlobalStyles.signupButtonText}>
-                                    {buttonText}
-                                </Text>
-                            </Button>
-                            <ErrorText error={error}/>
+                            {loader}
+                            {this.showStartButton() && <>
+                                <Button
+                                    onPress={this.handleConnect}
+                                    containerStyle={[GlobalStyles.signupButton, style.connectButton]}
+                                >
+                                    <Text style={GlobalStyles.signupButtonText}>
+                                        <FormattedText
+                                            id='mobile.components.select_server_view.start'
+                                            defaultMessage='Start'
+                                        />
+                                    </Text>
+                                </Button>
+                                <ErrorText error={error}/>
+                            </>}
                         </View>
                     </TouchableWithoutFeedback>
                 </KeyboardAvoidingView>
